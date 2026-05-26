@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Words on the Street</title>
+  <style>
+    :root {
+      --paper: #efe2cf;
+      --paper-dark: #c79a79;
+      --pink: #e8a39a;
+      --pink-deep: #d56857;
+      --ink: #24473f;
+      --muted: #805f50;
+      --cream: #fff8ec;
+      --community: #f0c64f;
+      --developer: #fffaf0;
+      --shadow: rgba(80, 47, 37, 0.22);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.35), transparent 22%),
+        radial-gradient(circle at 80% 70%, rgba(220,120,95,0.18), transparent 30%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image:
+        linear-gradient(90deg, rgba(104,70,45,0.08) 1px, transparent 1px),
+        linear-gradient(rgba(104,70,45,0.08) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mix-blend-mode: multiply;
+    }
+
+    .page {
+      width: min(1180px, 94vw);
+      height: 100vh;
+      margin: 0 auto;
+      padding: 24px 0 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 14px;
+      flex: none;
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 6.6vw, 84px);
+      line-height: 0.90;
+      letter-spacing: -0.035em;
+      font-stretch: normal;
+      color: var(--ink);
+    }
+
+    .intro {
+      margin: 0;
+      font: 15px/1.65 Arial, sans-serif;
+      color: #5f4b40;
+      max-width: 430px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      font: 12px/1 Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6f5547;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border: 1px solid rgba(36,71,63,0.22);
+      border-radius: 999px;
+      background: rgba(255,248,236,0.5);
+    }
+
+    .legend i {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1.5px solid var(--ink);
+    }
+
+    .legend .dev i { background: var(--developer); }
+    .legend .com i { background: var(--community); }
+
+    .map-shell {
+      position: relative;
+      height: auto;
+      flex: 1;
+      min-height: 0;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(36,71,63,0.28);
+      box-shadow: 0 22px 70px var(--shadow);
+      background: var(--cream);
+    }
+
+    .map-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle, transparent 45%, rgba(139,86,58,0.16));
+    }
+
+    svg.map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .street {
+      fill: none;
+      stroke: var(--pink);
+      stroke-width: 44;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.86;
+    }
+
+    .street.secondary {
+      stroke-width: 26;
+      opacity: 0.64;
+    }
+
+    .street.main {
+      stroke-width: 48;
+      opacity: 0.88;
+    }
+
+    .railway {
+      fill: none;
+      stroke: rgba(36, 71, 63, 0.55);
+      stroke-width: 18;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 18 14;
+      opacity: 0.5;
+    }
+
+    .park-zone {
+      fill: rgba(36, 71, 63, 0.08);
+      stroke: rgba(36, 71, 63, 0.16);
+      stroke-width: 1.5;
+    }
+
+    .station-dot {
+      fill: rgba(36, 71, 63, 0.84);
+      stroke: var(--cream);
+      stroke-width: 5;
+    }
+
+    .station-label {
+      font: 700 12px Arial, sans-serif;
+      fill: var(--ink);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .street-name {
+      font: 14px Arial, sans-serif;
+      fill: rgba(129,75,62,0.75);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .sketch {
+      fill: none;
+      stroke: var(--pink-deep);
+      stroke-width: 2.2;
+      opacity: 0.85;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .building-label {
+      font: 14px Georgia, serif;
+      fill: var(--ink);
+      opacity: 0.86;
+    }
+
+    .marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1.8px solid var(--ink);
+      cursor: pointer;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font: 700 11px Arial, sans-serif;
+      box-shadow: 0 6px 16px rgba(54,32,24,0.2);
+      transition: transform 180ms ease, box-shadow 180ms ease, outline 180ms ease;
+    }
+
+    .marker.community { background: var(--community); }
+    .marker.developer { background: var(--developer); }
+
+    .marker:hover, .marker.active {
+      z-index: 100;
+      transform: translate(-50%, -50%) scale(1.26);
+      box-shadow: 0 12px 24px rgba(54,32,24,0.3);
+      outline: 8px solid rgba(255,248,236,0.42);
+    }
+
+    .marker::after {
+      content: attr(data-short);
+      position: absolute;
+      top: 28px;
+      white-space: nowrap;
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: rgba(255,248,236,0.78);
+      border: 1px solid rgba(36,71,63,0.2);
+      color: #6d5144;
+      font: 10px Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: 180ms ease;
+      pointer-events: none;
+    }
+
+    .marker:hover::after, .marker.active::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .popup {
+      position: absolute;
+      z-index: 2000;
+      width: 300px;
+      background: rgba(255, 248, 236, 0.97);
+      border: 1px solid rgba(36,71,63,0.28);
+      border-radius: 20px;
+      box-shadow: 0 18px 42px rgba(64,40,30,0.24);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 170ms ease, transform 170ms ease, left 170ms ease, top 170ms ease;
+    }
+
+    .popup.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .popup img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.86) contrast(0.96);
+    }
+
+    .popup-content {
+      padding: 12px 14px 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 7px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font: 700 10px/1 Arial, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink);
+      border: 1px solid rgba(36,71,63,0.25);
+    }
+
+    .tag.community { background: rgba(240,198,79,0.62); }
+    .tag.developer { background: rgba(255,255,255,0.82); }
+
+    .quote {
+      margin: 0 0 12px;
+      font-size: 18px;
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+    }
+
+    .context {
+      margin: 0;
+      font: 12px/1.38 Arial, sans-serif;
+      color: #614c40;
+    }
+
+    .footer-note {
+      margin: 16px 4px 0;
+      font: 12px/1.5 Arial, sans-serif;
+      color: #755c4f;
+    }
+
+    @media (max-width: 760px) {
+      header { grid-template-columns: 1fr; }
+      .map-shell { height: 70vh; min-height: 0; }
+      .popup { width: min(330px, calc(100vw - 30px)); }
+      .quote { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <p class="kicker">Asset 01 · Elephant & Castle</p>
+        <h1>Words on<br>the Street</h1>
+      </div>
+      <div>
+        <p class="intro">A street-level archive of public-facing language collected around Elephant & Castle. Walking through the area, two voices emerge. One shaped by capital and regeneration, the other by the people who live here. Hover over each point to read the text and see the original photograph.</p>
+        <div class="legend">
+          <span class="dev"><i></i> Developer language</span>
+          <span class="com"><i></i> Community language</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="map-shell" id="mapShell" aria-label="Interactive map of street words">
+      <svg class="map" viewBox="0 0 1180 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <path class="street main" d="M70 180 C210 205 330 222 455 248 C560 270 650 272 770 252 C890 232 1000 204 1120 188" />
+        <path class="street main" d="M438 120 C420 215 407 290 392 382 C374 495 360 590 348 700" />
+        <path class="street secondary" d="M430 360 C520 338 610 322 705 315 C830 305 940 318 1115 360" />
+        <path class="street secondary" d="M520 520 C625 450 705 398 825 360 C930 327 1022 318 1140 322" />
+        <path class="street secondary" d="M515 225 C490 285 470 340 458 420 C440 535 430 610 420 705" />
+        <path class="street secondary" d="M735 310 C748 405 770 505 818 610 C836 650 850 681 870 710" />
+        <path class="street secondary" d="M238 462 C310 445 360 430 415 410 C478 388 525 370 590 352" />
+        <path class="railway" d="M215 55 C270 170 310 260 350 370 C393 488 420 590 445 704" />
+
+        <path class="park-zone" d="M610 278 C700 250 802 248 895 280 C970 306 1008 362 986 445 C962 535 846 575 720 550 C604 526 540 460 558 376 C566 333 580 300 610 278Z" />
+        <path class="park-zone" d="M165 454 C225 415 316 402 386 428 C437 447 456 506 424 568 C386 644 270 671 185 622 C114 582 105 493 165 454Z" />
+
+        <text class="street-name" x="106" y="164" transform="rotate(10 106 164)">New Kent Road / Elephant Road</text>
+        <text class="street-name" x="448" y="578" transform="rotate(96 448 578)">Walworth Road</text>
+        <text class="street-name" x="702" y="340" transform="rotate(-5 702 340)">Sayer Street</text>
+        <text class="street-name" x="792" y="590" transform="rotate(62 792 590)">Manor Place / Angel Lane</text>
+        <text class="street-name" x="208" y="632" transform="rotate(-9 208 632)">Rockingham Estate</text>
+
+        <circle class="station-dot" cx="430" cy="300" r="17" />
+        <text class="station-label" x="455" y="305">Elephant & Castle Station</text>
+        <text class="building-label" x="232" y="116">railway viaduct</text>
+        <text class="building-label" x="710" y="285">Elephant Park</text>
+        <text class="building-label" x="782" y="668">The Arches</text>
+
+        <g class="sketch" transform="translate(242 160) scale(.85)">
+          <path d="M0 48 L36 18 L72 50 L78 124 L7 126 Z" />
+          <path d="M14 52 L14 126 M34 36 L34 126 M56 48 L56 126 M8 84 L76 84" />
+        </g>
+        <g class="sketch" transform="translate(145 480) scale(.72)">
+          <path d="M4 108 L18 18 L116 10 L142 92 L92 132 Z" />
+          <path d="M26 35 L112 28 M20 62 L126 55 M14 90 L134 84" />
+          <path d="M46 31 L40 109 M78 24 L78 126 M108 28 L98 116" />
+        </g>
+        <g class="sketch" transform="translate(705 405) scale(.82)">
+          <path d="M4 94 C26 32 70 8 138 22 C170 38 178 76 156 116 C112 150 44 142 4 94Z" />
+          <path d="M38 62 C72 42 96 42 130 70" />
+          <path d="M42 98 C80 118 112 110 144 86" />
+        </g>
+        <g class="sketch" transform="translate(905 505) scale(.76)">
+          <path d="M8 122 L22 26 L96 3 L156 48 L148 146 L46 154 Z" />
+          <path d="M35 40 L136 64 M30 72 L148 92 M27 104 L145 119" />
+          <path d="M58 30 L56 147 M96 18 L100 151 M130 48 L126 144" />
+        </g>
+      </svg>
+
+      <button class="marker community" style="left: 32%; top: 28%;" data-id="latinos" data-short="Latinos">1</button>
+      <button class="marker community" style="left: 23%; top: 64%;" data-id="ellington" data-short="E+C mural">2</button>
+      <button class="marker community" style="left: 28%; top: 53%;" data-id="ladpp" data-short="LADPP">3</button>
+      <button class="marker community" style="left: 20%; top: 38%;" data-id="elliotts" data-short="Welcome">4</button>
+      <button class="marker community" style="left: 35%; top: 35%;" data-id="fogata" data-short="La Fogata">5</button>
+
+      <button class="marker developer" style="left: 66%; top: 41%;" data-id="rent" data-short="Rent">6</button>
+      <button class="marker developer" style="left: 73%; top: 49%;" data-id="energy" data-short="Energy">7</button>
+      <button class="marker developer" style="left: 49%; top: 33%;" data-id="meet" data-short="Soon">8</button>
+      <button class="marker developer" style="left: 61%; top: 39%;" data-id="update" data-short="Update">9</button>
+      <button class="marker developer" style="left: 84%; top: 73%;" data-id="arches" data-short="Arches">10</button>
+
+      <article class="popup" id="popup" aria-live="polite">
+        <img id="popupImg" src="" alt="Street text source image" />
+        <div class="popup-content">
+          <span class="tag" id="popupTag"></span>
+          <p class="quote" id="popupQuote"></p>
+          <p class="context" id="popupContext"></p>
+        </div>
+      </article>
+    </section>
+
+    <p class="footer-note">Tip: on touch screens, tap a point once to open the card and tap another point to switch.</p>
+  </main>
+
+  <script>
+    const entries = {
+      latinos: {
+        type: 'community',
+        quote: '\u201CWe are not \u2018other\u2019, we are LATINOS\u201D',
+        context: 'Elephant Road railway bridge. A hand-painted statement of collective identity, positioned against layered graffiti and informal street surfaces.',
+        img: 'assets/latinos.jpg'
+      },
+      ellington: {
+        type: 'community',
+        quote: 'Ellington House mural: \u201CI \u2665 E+C\u201D',
+        context: 'Rockingham Estate. A community mural using bright symbols of belonging, locality and multicultural coexistence.',
+        img: 'assets/ellington-house.jpg'
+      },
+      ladpp: {
+        type: 'community',
+        quote: '\u201CImproving the quality of life... of Spanish and Portuguese speakers\u201D',
+        context: 'LADPP window poster. A service-oriented community message for Latin American, Spanish and Portuguese speaking residents in London.',
+        img: 'assets/ladpp.jpg'
+      },
+      elliotts: {
+        type: 'community',
+        quote: 'Elliott\u2019s Row Pocket Park multilingual welcome sign',
+        context: 'A public park sign that uses multiple languages to frame the site as shared, welcoming and locally maintained.',
+        img: 'assets/elliotts-row.jpg'
+      },
+      fogata: {
+        type: 'community',
+        quote: '\u201CNos Mudamos de Local\u201D + Latino Fest',
+        context: 'La Fogata information board on Elephant Road. Everyday handwritten menus, relocation notices and event posters form an informal local archive.',
+        img: 'assets/la-fogata.jpg'
+      },
+      rent: {
+        type: 'developer',
+        quote: '\u201CRent Extraordinary\u201D',
+        context: 'PS Parkside / Lendlease, Sayer Street. Promotional rental language turns housing into an aspirational lifestyle product.',
+        img: 'assets/rent-extraordinary.jpg'
+      },
+      energy: {
+        type: 'developer',
+        quote: '\u201CEnergy Machine\u201D',
+        context: 'Elephant Park. A branded placemaking phrase that presents redevelopment as playful, spectacular and future-facing.',
+        img: 'assets/energy-machine.jpg'
+      },
+      meet: {
+        type: 'developer',
+        quote: '\u201CMEET YOU SOON\u201D',
+        context: 'Dragados / Get Living, near the station. A temporary construction message that softens disruption by promising arrival and future activity.',
+        img: 'assets/meet-you-soon.jpg'
+      },
+      update: {
+        type: 'developer',
+        quote: '\u201CCOMMUNITY UPDATE\u201D',
+        context: 'Multiplex / Get Living fencing. Corporate update language frames construction progress as transparent community communication.',
+        img: 'assets/community-update.jpg'
+      },
+      arches: {
+        type: 'developer',
+        quote: '\u201CYOU HAVE ARRIVED AT THE ARCHES\u201D',
+        context: 'The Arches, Manor Place Depot. Arrival language creates a destination identity around a commercial leisure site.',
+        img: 'assets/arches.jpg'
+      }
+    };
+
+    const shell = document.getElementById('mapShell');
+    const popup = document.getElementById('popup');
+    const popupImg = document.getElementById('popupImg');
+    const popupTag = document.getElementById('popupTag');
+    const popupQuote = document.getElementById('popupQuote');
+    const popupContext = document.getElementById('popupContext');
+    const markers = [...document.querySelectorAll('.marker')];
+
+    function showPopup(marker) {
+      const data = entries[marker.dataset.id];
+      if (!data) return;
+
+      markers.forEach(m => m.classList.remove('active'));
+      marker.classList.add('active');
+
+      popupImg.src = data.img;
+      popupImg.alt = data.quote;
+      popupTag.textContent = data.type === 'developer' ? 'Developer language' : 'Community language';
+      popupTag.className = `tag ${data.type}`;
+      popupQuote.textContent = data.quote;
+      popupContext.textContent = data.context;
+
+      const shellRect = shell.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
+      const popupWidth = popup.offsetWidth || 340;
+      const popupHeight = popup.offsetHeight || 390;
+
+      let left = markerRect.left - shellRect.left + markerRect.width / 2 - popupWidth / 2;
+      let top = markerRect.top - shellRect.top - popupHeight - 16;
+
+      if (left + popupWidth > shellRect.width - 18) left = shellRect.width - popupWidth - 18;
+      if (left < 18) left = 18;
+      if (top < 18) top = markerRect.top - shellRect.top + markerRect.height + 16;
+      if (top + popupHeight > shellRect.height - 18) top = shellRect.height - popupHeight - 18;
+
+      popup.style.left = `${left}px`;
+      popup.style.top = `${top}px`;
+      popup.classList.add('show');
+    }
+
+    function hidePopup() {
+      popup.classList.remove('show');
+      markers.forEach(m => m.classList.remove('active'));
+    }
+
+    markers.forEach(marker => {
+      marker.addEventListener('mouseenter', () => showPopup(marker));
+      marker.addEventListener('mouseleave', hidePopup);
+      marker.addEventListener('focus', () => showPopup(marker));
+      marker.addEventListener('blur', hidePopup);
+      marker.addEventListener('click', event => {
+        event.preventDefault();
+        showPopup(marker);
+      });
+    });
+
+    shell.addEventListener('mouseleave', hidePopup);
+  </script>
+</body>
+</html>
